@@ -1,1 +1,12 @@
 db_creds.yaml
+pg_db_creds.yaml
+keys.yaml
+code_scrapbooks/
+credentials/
+__pycache__/
+user_extract.py
+cc_extract.py
+product_extract.py
+orders_extract.py
+store_extract.py
+products.csv
