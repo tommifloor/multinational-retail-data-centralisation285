@@ -37,6 +37,7 @@ class DatabaseConnector:
     def read_db_creds(self, creds):
         with open(creds, 'r') as db_creds_file:
             db_creds = yaml.safe_load(db_creds_file)
+        
         return db_creds
     
     def init_db_engine(self, db_creds=None):
@@ -58,10 +59,12 @@ class DatabaseConnector:
             f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{ENDPOINT}:{PORT}/{DATABASE}"
             )
         self.engine = engine
+
         return engine
     
     def list_db_tables(self):
         table_names = inspect(self.engine).get_table_names()
+        
         return table_names
     
     def upload_to_db(self, pd_dataframe, table_name, db_creds=None):
@@ -69,10 +72,8 @@ class DatabaseConnector:
             engine = self.init_db_engine(self.upload_creds)
         else:
             engine = self.init_db_engine(db_creds)
-        #try:
         pd_dataframe.to_sql(table_name, engine, if_exists='replace')
         print("Dataframe uploaded")
-        # except:
 
 
 if __name__ == "__main__":
