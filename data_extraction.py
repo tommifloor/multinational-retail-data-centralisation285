@@ -65,5 +65,9 @@ class DataExtractor:
         s3.download_file(bucket, file_name, file_path)
         product_df = pd.read_csv(file_path)
         return product_df
+    
+    def extract_from_js(self, file_path):
+        df = pd.read_json(file_path)
+        return df
 
 # if __name__ == "__main__":

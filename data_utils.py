@@ -58,7 +58,6 @@ class DatabaseConnector:
             f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{ENDPOINT}:{PORT}/{DATABASE}"
             )
         self.engine = engine
-        print("Database connection successful.")
         return engine
     
     def list_db_tables(self):

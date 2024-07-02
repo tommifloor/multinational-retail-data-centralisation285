@@ -48,13 +48,16 @@ class DataCleaning:
         # Targeted cleaning
         user_df = self.name_clean(user_df, 'first_name')
         user_df = self.name_clean(user_df, 'last_name')
-        user_df = self.string_clean(user_df, 'company')
+        user_df = self.title_clean(user_df, 'company')
         user_df = self.address_clean(user_df)
         user_df = self.country_clean(user_df)
         user_df = self.country_code_clean(user_df)
         user_df = self.email_clean(user_df)
-        user_df = self.userid_clean(user_df)
+        user_df = self.id_clean(user_df,'user_uuid')
+
+        # TO DO
         #user_df = self.phone_clean(user_df)
+        # 
 
         user_df = self.date_clean(user_df, 'date_of_birth')
         user_df = self.date_clean(user_df, 'join_date')
@@ -68,7 +71,6 @@ class DataCleaning:
         user_df = user_df.reset_index(drop=True)
 
         return user_df
-
 
     def clean_card_data(self, cc_df):
         # General cleaning
@@ -117,6 +119,7 @@ class DataCleaning:
         store_df = store_df.reset_index(drop=True)
 
         store_df = self.null_clean(store_df) # Drop NULLs
+        # store_df = store_df[~store_df.isna()]
         store_df = store_df.drop_duplicates() # Drop duplicates
 
         # Filter out erroneous values
@@ -140,15 +143,15 @@ class DataCleaning:
         product_df = product_df.drop(product_df.columns[0], axis=1)
         product_df = product_df.reset_index(drop=True)
 
-        product_df = cln.null_clean(product_df) # Drop NULLs
+        product_df = self.null_clean(product_df) # Drop NULLs
 
         # Filter out erroneous values
         product_df = product_df[~product_df.map(lambda x: len(str(x)) == 10).all(axis=1)]
         product_df = product_df.drop(product_df.loc[product_df['uuid'].apply(len)<26].index)
 
-        product_df = cln.date_clean(product_df,'date_added')
+        product_df = self.date_clean(product_df,'date_added')
 
-        product_df = cln.convert_product_weights(product_df)
+        product_df = self.convert_product_weights(product_df)
 
         product_df = product_df.dropna(how='all') # Drop NULLs
         product_df = product_df.dropna(axis=1,how='all') # Drop column NULLs
@@ -174,6 +177,26 @@ class DataCleaning:
         order_df = order_df.drop_duplicates() 
         order_df = order_df.reset_index(drop=True)
         return order_df
+    
+    def clean_events_data(self, event_df):
+        # General cleaning
+        event_df = self.null_clean(event_df) # Drop NULLs
+        event_df = event_df.drop_duplicates() # Drop duplicates
+
+        # Filter out erroneous values
+        event_df = event_df[~event_df.map(lambda x: len(str(x)) == 10).all(axis=1)]
+        event_df = self.id_clean(event_df, 'date_uuid')
+
+        # Date clean
+        event_df['date'] = event_df['year'] + ' ' + event_df['month'] + ' ' + event_df['day'] + ' ' + event_df['timestamp']
+        event_df = event_df.drop(columns=['year', 'month', 'day', 'timestamp'])
+        event_df = self.date_clean(event_df, 'date')
+
+        # Final sweep
+        event_df = event_df.dropna(how='all')
+        event_df = event_df.drop_duplicates()
+        event_df = event_df.reset_index(drop=True)
+        return event_df
 
     def convert_product_weights(self, product_df):
         units = {'kg': 1, 'g': .001, 'ml': .001, 'oz': 0.02834952}
@@ -199,8 +222,7 @@ class DataCleaning:
         df = df.map(lambda x: x.lower() if isinstance(x, str) else x) 
         return df
 
-    
-    def string_clean(self, df, column_name):
+    def title_clean(self, df, column_name):
         df[column_name] = df[column_name].astype({column_name : 'string'}) # String datatype
         df[column_name] = df[column_name].str.title() # Title case        
         return df
@@ -208,9 +230,8 @@ class DataCleaning:
     def name_clean(self, df, column_name):
         # Remove non-alphabetic characters (except '-')
         df[column_name] = df[column_name].str.replace(r'[^A-Za-z-]+', '', regex=True)
-        df = self.string_clean(df, column_name)
+        df = self.title_clean(df, column_name)
         return df
-
 
     def date_clean(self, df, column_name):
         df[column_name] = df[column_name].astype('string')
@@ -221,7 +242,7 @@ class DataCleaning:
     def address_clean(self, df):
         # Replace escape character line breaks
         df['address'] = df['address'].str.replace('\n', ', ', regex=False)
-        df = self.string_clean(df, 'address')
+        df = self.title_clean(df, 'address')
         return df
 
     def email_clean(self, df):
@@ -231,7 +252,6 @@ class DataCleaning:
         df['email_address'] = df['email_address'].str.replace(r'[@]{2,}', '@', regex=True)
         # Remove invalid email addresses
         df = self.regex_check(df,'email_address', regex_filter)
-        df = self.string_clean(df,'email_address')
         return df
     
     def phone_clean(self, df):
@@ -239,10 +259,18 @@ class DataCleaning:
         # Country code clean
         # Remove (0), and +44(0)
         # Remove none numerica characters
-
             return df
         except:
             print("phone_clean error")
+
+    def load_country_data(self):
+            country_codes = []
+            with open('reference_data/country_data.yaml', "r") as country_file:
+                country_data = yaml.safe_load(country_file)
+                countries = list(country_data.keys())
+                for country in countries:
+                    country_codes.append(country_data[country]['2-Letter Country Code'])
+            return country_data, countries, country_codes
 
     def country_clean(self, df):
         df['country'] = df['country'].str.replace(r'[^A-Za-z-]+', '', regex=True) 
@@ -257,7 +285,7 @@ class DataCleaning:
                 corrected_countries.append(None)
         country_dict = dict(zip(unique_countries, corrected_countries))
         df['country'] = df['country'].replace(country_dict)
-        df = self.string_clean(df,'country')
+        df = self.title_clean(df,'country')
         return df
     
     def continent_clean(self, df):
@@ -273,11 +301,11 @@ class DataCleaning:
                 corrected_continents.append(None)
         continent_dict = dict(zip(unique_continents, corrected_continents))
         df['continent'] = df['continent'].replace(continent_dict)
+        df = self.title_clean(df,'continent')
         return df
     
     # TO DO: Fix None errors / refactor
     def country_code_clean(self, df):
-        try:
             df['country_code'] = df['country_code'].str.replace(r'[^A-Za-z- ]+', '', regex=True)
             unique_countries = list(df['country'].unique())
             code_dict = {}
@@ -285,29 +313,12 @@ class DataCleaning:
                 code_dict[country] = self.country_data[country]['2-Letter Country Code']
             df['country_code'] = df['country'].replace(code_dict)
             return df
-        except:
-            print("country_code_clean error")
     
-    def userid_clean(self, df):
-        try:    
+    def id_clean(self, df, column):  
             regex_filter = re.compile(r"^([A-Za-z0-9]{8})[-]([A-Za-z0-9]{4})[-]([A-Za-z0-9]{4})[-]([A-Za-z0-9]{4})[-]([A-Za-z0-9]{12})$")
-            df = self.regex_check(df,'user_uuid',regex_filter)
-            df = self.string_clean(df,'user_uuid')
+            df = self.regex_check(df, column, regex_filter)
+            df = df.loc[~df[column].isna()]
             return df
-        except:
-            print("userid_clean error")
-
-    def load_country_data(self):
-        try:
-            country_codes = []
-            with open('reference_data/country_data.yaml', "r") as country_file:
-                country_data = yaml.safe_load(country_file)
-                countries = list(country_data.keys())
-                for country in countries:
-                    country_codes.append(country_data[country]['2-Letter Country Code'])
-            return country_data, countries, country_codes
-        except:
-            print("load_country_data error")
 
     def regex_check(self, df, column, regex_code):
         regex_filter = re.compile(regex_code)
