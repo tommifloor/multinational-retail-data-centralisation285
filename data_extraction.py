@@ -37,10 +37,10 @@ class DataExtractor:
         return cc_df
     
     def read_api_headers(self, headers_yaml):
-            with open(headers_yaml, 'r') as api_headers_file:
-                api_headers = yaml.safe_load(api_headers_file)
+        with open(headers_yaml, 'r') as api_headers_file:
+            api_headers = yaml.safe_load(api_headers_file)
 
-                return api_headers
+        return api_headers
 
     def list_number_of_stores(self, api_header_filepath, store_no_endpoint):
         api_headers = self.read_api_headers(api_header_filepath)

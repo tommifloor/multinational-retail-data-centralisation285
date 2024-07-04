@@ -5,9 +5,10 @@ import data_utils as du
 
 # Initialize Objects
 cxn = du.DatabaseConnector()
-cxn.init_db_engine()
 ext = de.DataExtractor()
 cln = dc.DataCleaning()
+
+cxn.init_db_engine()
 
 # User tables
 user_df = ext.read_rds_table(cxn.engine, 'legacy_users')
@@ -30,7 +31,7 @@ S3_file_path = 'products.csv'
 product_df = ext.extract_from_s3('data-handling-public','products.csv', S3_file_path)
 product_df = cln.clean_products_data(product_df)
 
-# Orders
+Orders
 order_df = ext.read_rds_table(cxn.engine,'orders_table')
 order_df = cln.clean_orders_data(order_df)
 
@@ -40,9 +41,11 @@ event_df = ext.extract_from_js(json_file_path)
 event_df = cln.clean_events_data(event_df)
 
 # Database uploads
-#cxn.upload_to_db(user_df, 'dim_users')
-#cxn.upload_to_db(cc_df, 'dim_card_details')
-#cxn.upload_to_db(store_df, 'dim_store_details')
-#cxn.upload_to_db(product_df, 'dim_products')
-#cxn.upload_to_db(order_df, 'orders_table')
-#cxn.upload_to_db(order_df, 'dim_date_times')
+cxn.upload_to_db(user_df, 'dim_users')
+cxn.upload_to_db(cc_df, 'dim_card_details')
+cxn.upload_to_db(store_df, 'dim_store_details')
+cxn.upload_to_db(product_df, 'dim_products')
+cxn.upload_to_db(order_df, 'orders_table')
+cxn.upload_to_db(order_df, 'dim_date_times')
+
+print("Script complete.")

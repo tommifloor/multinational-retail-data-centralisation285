@@ -29,7 +29,7 @@ class DatabaseConnector:
     """
     def __init__(self, download_creds=None, upload_creds=None):
 
-        self.download_creds = download_creds if upload_creds is not None else 'credentials/rds_creds.yaml'
+        self.download_creds = download_creds if download_creds is not None else 'credentials/rds_creds.yaml'
         self.upload_creds = upload_creds if upload_creds is not None else 'credentials/pg_creds.yaml'
         self.engine = None
 
@@ -72,7 +72,8 @@ class DatabaseConnector:
             engine = self.init_db_engine(self.upload_creds)
         else:
             engine = self.init_db_engine(db_creds)
-        pd_dataframe.to_sql(table_name, engine, if_exists='replace')
+        pd_dataframe.to_sql(table_name, engine, if_exists='replace',chunksize=20)
+        engine.dispose()
         print("Dataframe uploaded")
 
 

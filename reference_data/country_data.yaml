@@ -762,7 +762,7 @@ Iceland:
   2-Letter Country Code: IS
   3-Letter Country: ISL
   3-Letter Currency Abbreviation: ISK
-  Capital: "Reykjav\xEDk"
+  Capital: "Reykjavik"
   Currency Name: "Icelandic kr\xF3na"
   Currency Symbol: .nan
   Dialing Code: '+354'
@@ -1243,7 +1243,7 @@ Nicaragua:
   3-Letter Country: NIC
   3-Letter Currency Abbreviation: NIO
   Capital: Managua
-  Currency Name: "Nicaraguan c\xF3rdoba"
+  Currency Name: "Nicaraguan cordoba"
   Currency Symbol: .nan
   Dialing Code: '+505'
   Power Socket: .nan
@@ -1473,7 +1473,7 @@ Samoa:
   3-Letter Country: WSM
   3-Letter Currency Abbreviation: WST
   Capital: Apia
-  Currency Name: "Samoan t\u0101l\u0101"
+  Currency Name: "Samoan tala"
   Currency Symbol: .nan
   Dialing Code: '+685'
   Power Socket: .nan

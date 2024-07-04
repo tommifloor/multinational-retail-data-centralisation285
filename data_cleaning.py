@@ -56,6 +56,8 @@ class DataCleaning:
 
         # TO DO
         #user_df = self.phone_clean(user_df)
+        user_df['phone_number'] = user_df['phone_number'].astype('string')
+        user_df['phone_number'] = user_df['phone_number'].str.replace(r'([^0-9]+)',"",regex=True)
         
         user_df = self.date_clean(user_df, 'date_of_birth')
         user_df = self.date_clean(user_df, 'join_date')
@@ -72,12 +74,12 @@ class DataCleaning:
 
     def clean_card_data(self, cc_df):
         # General cleaning
-        cc_df = cc_df.reset_index(drop=True)
-        cc_df = self.null_clean(cc_df)
-        cc_df = self.format_clean(cc_df)
+        # cc_df = cc_df.reset_index(drop=True)
+        # cc_df = self.null_clean(cc_df)
+        # cc_df = self.format_clean(cc_df)
 
-        # Filter out erroneous values
-        cc_df = cc_df[~cc_df.map(lambda x: len(str(x)) == 10).all(axis=1)]
+        # # Filter out erroneous values
+        # cc_df = cc_df[~cc_df.map(lambda x: len(str(x)) == 10).all(axis=1)]
 
         # General clean
         cc_df = cc_df.reset_index(drop=True)
@@ -91,7 +93,9 @@ class DataCleaning:
         cc_df['card_number'] = cc_df['card_number'].astype('string')
         cc_df['card_number'] = cc_df['card_number'].str.replace(r'([^0-9]+)',"",regex=True)
 
+
         cc_df['card_provider'] = cc_df['card_provider'].astype('string')
+        cc_df = self.provider_clean(cc_df)
 
         # Date clean
         cc_df = self.date_clean(cc_df,'date_payment_confirmed')
@@ -139,7 +143,6 @@ class DataCleaning:
 
         product_df = product_df.drop(product_df.columns[0], axis=1)
         product_df = product_df.reset_index(drop=True)
-
         product_df = self.null_clean(product_df) # Drop NULLs
 
         # Filter out erroneous values
@@ -317,14 +320,29 @@ class DataCleaning:
     
     # TO DO: Fix None errors / refactor
     def country_code_clean(self, df):
-            df['country_code'] = df['country_code'].str.replace(r'[^A-Za-z- ]+', '', regex=True)
-            unique_countries = list(df['country'].unique())
-            code_dict = {}
-            for country in unique_countries:
-                code_dict[country] = self.country_data[country]['2-Letter Country Code']
-            df['country_code'] = df['country'].replace(code_dict)
+        df['country_code'] = df['country_code'].str.replace(r'[^A-Za-z- ]+', '', regex=True)
+        unique_countries = list(df['country'].unique())
+        code_dict = {}
+        for country in unique_countries:
+            code_dict[country] = self.country_data[country]['2-Letter Country Code']
+        df['country_code'] = df['country'].replace(code_dict)
 
-            return df
+        return df
+    
+    def provider_clean(self, df):
+        unique_providers = list(df['card_provider'].unique())
+        ref_providers = ['Visa', 'JCB', 'American Express', 
+                        'Diner\'s Club', 'Maestro', 
+                        'Mastercard', 'Discovery'
+                        ]
+        provider_list = []
+        for provider in unique_providers:
+            provider_check = process.extractOne(provider, ref_providers)
+            provider_list.append(provider_check[0])
+        provider_dict = dict(zip(unique_providers, provider_list))
+        df['card_provider'] = df['card_provider'].replace(provider_dict)
+        
+        return df
     
     def id_clean(self, df, column):  
             regex_filter = re.compile(r"^([A-Za-z0-9]{8})[-]([A-Za-z0-9]{4})[-]([A-Za-z0-9]{4})[-]([A-Za-z0-9]{4})[-]([A-Za-z0-9]{12})$")
