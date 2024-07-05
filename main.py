@@ -14,7 +14,7 @@ cxn.init_db_engine()
 user_df = ext.read_rds_table(cxn.engine, 'legacy_users')
 user_df = cln.clean_user_data(user_df)
 
-# Credit cards
+# # Credit cards
 pdf_endpoint = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
 cc_df = ext.retrieve_pdf_data(pdf_endpoint)
 cc_df = cln.clean_card_data(cc_df)
@@ -31,7 +31,7 @@ S3_file_path = 'products.csv'
 product_df = ext.extract_from_s3('data-handling-public','products.csv', S3_file_path)
 product_df = cln.clean_products_data(product_df)
 
-Orders
+# Orders
 order_df = ext.read_rds_table(cxn.engine,'orders_table')
 order_df = cln.clean_orders_data(order_df)
 
@@ -46,6 +46,6 @@ cxn.upload_to_db(cc_df, 'dim_card_details')
 cxn.upload_to_db(store_df, 'dim_store_details')
 cxn.upload_to_db(product_df, 'dim_products')
 cxn.upload_to_db(order_df, 'orders_table')
-cxn.upload_to_db(order_df, 'dim_date_times')
+cxn.upload_to_db(event_df, 'dim_date_times')
 
 print("Script complete.")

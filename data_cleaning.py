@@ -73,13 +73,6 @@ class DataCleaning:
         return user_df
 
     def clean_card_data(self, cc_df):
-        # General cleaning
-        # cc_df = cc_df.reset_index(drop=True)
-        # cc_df = self.null_clean(cc_df)
-        # cc_df = self.format_clean(cc_df)
-
-        # # Filter out erroneous values
-        # cc_df = cc_df[~cc_df.map(lambda x: len(str(x)) == 10).all(axis=1)]
 
         # General clean
         cc_df = cc_df.reset_index(drop=True)
@@ -114,22 +107,22 @@ class DataCleaning:
         return cc_df
 
     def clean_store_data(self, store_df):
-
+        # General clean
         store_df = store_df.sort_values('index')
         store_df = store_df.drop('index', axis=1)
         store_df = store_df.reset_index(drop=True)
-
         store_df = self.null_clean(store_df) # Drop NULLs
-        # store_df = store_df[~store_df.isna()]
         store_df = store_df.drop_duplicates() # Drop duplicates
 
         # Filter out erroneous values
         store_df = store_df[~store_df.map(lambda x: len(str(x)) == 10).all(axis=1)]
 
+        # Targeted clean
+        store_df['staff_numbers'] = store_df['staff_numbers'].astype('string')
+        store_df['staff_numbers'] = store_df['staff_numbers'].str.replace(r'([^0-9]+)',"",regex=True)
+
         store_df = self.date_clean(store_df,'opening_date')
-
         store_df = self.address_clean(store_df)
-
         store_df = self.continent_clean(store_df)
 
         store_df = store_df.dropna(how='all') # Drop NULLs
@@ -189,9 +182,9 @@ class DataCleaning:
         event_df = self.id_clean(event_df, 'date_uuid')
 
         # Date clean
-        event_df['date'] = event_df['year'] + ' ' + event_df['month'] + ' ' + event_df['day'] + ' ' + event_df['timestamp']
-        event_df = event_df.drop(columns=['year', 'month', 'day', 'timestamp'])
-        event_df = self.date_clean(event_df, 'date')
+        # event_df['date'] = event_df['year'] + ' ' + event_df['month'] + ' ' + event_df['day'] + ' ' + event_df['timestamp']
+        # event_df = event_df.drop(columns=['year', 'month', 'day', 'timestamp'])
+        # event_df = self.date_clean(event_df, 'date')
 
         # Final sweep
         event_df = event_df.dropna(how='all')
