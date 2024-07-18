@@ -39,13 +39,3 @@ order_df = cln.clean_orders_data(order_df)
 json_file_path = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/date_details.json'
 event_df = ext.extract_from_js(json_file_path)
 event_df = cln.clean_events_data(event_df)
-
-# Database uploads
-cxn.upload_to_db(user_df, 'dim_users')
-cxn.upload_to_db(cc_df, 'dim_card_details')
-cxn.upload_to_db(store_df, 'dim_store_details')
-cxn.upload_to_db(product_df, 'dim_products')
-cxn.upload_to_db(order_df, 'orders_table')
-cxn.upload_to_db(event_df, 'dim_date_times')
-
-print("Script complete.")

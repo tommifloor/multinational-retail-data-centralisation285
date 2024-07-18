@@ -1,10 +1,10 @@
 # Script to connect and upload data to database 
-import psycopg2
-import yaml
-
 from sqlalchemy import create_engine
 from sqlalchemy import inspect
 from urllib.parse import quote_plus
+
+import psycopg2
+import yaml
 
 class DatabaseConnector:
     """
@@ -12,20 +12,32 @@ class DatabaseConnector:
 
     Parameters:
     -----------
+    download_creds: file path
+        file path for download database credentials
+    upload_creds: file path
+        file path for upload database credentials
 
     Attributes:
     -----------
-
+    download_creds:
+        default download database credentials
+    upload_creds:
+        default upload database credentials
+    engine:
+        SQL Alchemy engine variable
+    
     Methods:
     --------
     read_db_cred(db_creds_file)
         Reads database credentials from YAML file. Returns dictionary
         of database credentials.
     init_db_engine(db_creds)
-        Connects to database to initialize and return SQL Alchemy
+        Read database credentials and returns SQL Alchemy
         database engine.
     list_db_tables(engine)
-        Lists database tables.
+        Uses SQL Alchemy engine to lists database tables.
+    upload_to_db(pd_dataframe, table_name, db_creds=None)
+        Uploads Pandas Dataframe to database.
     """
     def __init__(self, download_creds=None, upload_creds=None):
 
@@ -75,8 +87,3 @@ class DatabaseConnector:
         pd_dataframe.to_sql(table_name, engine, if_exists='replace',chunksize=20)
         engine.dispose()
         print("Dataframe uploaded")
-
-
-if __name__ == "__main__":
-    cxn = DatabaseConnector()
-    print("cxn initialized")

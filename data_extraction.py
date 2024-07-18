@@ -13,16 +13,22 @@ class DataExtractor:
     A class for extracting data from a variety of sources, including
     .csv files, APIs, and AWS S3 buckets.
 
-    Parameters:
-    -----------
-
-    Attributes:
-    -----------
-
     Methods:
     --------
     read_rds_table(DatabaseConnector, table_name)
-
+        Reads database table and returns Pandas dataframe
+    retrieve_pdf_data(endpoint)
+        Reads PDF url data and returns Pandas datafram
+    read_api_headers(headers_yaml)
+        Reads API headers from YAML file
+    list_number_of_store(api_header_filepath, store_no_endpoint)
+        Uses API to retrieve total store count
+    retrieve_stores_data(api_header_filepath, store_no_endpoint, store_data_endpoint)
+        Uses API to retrive and return store data as Pandas dataframe
+    extract_s3(bucket, file_name, file_path)
+        Connects to Amazon S3 bucket and returns Pandas dataframe
+    extract_from_js(file_path)
+        Creates Pandas dataframe from JSON file
     """
 
     def read_rds_table(self, engine, table_name):
@@ -71,5 +77,3 @@ class DataExtractor:
         df = pd.read_json(file_path)
 
         return df
-
-# if __name__ == "__main__":
