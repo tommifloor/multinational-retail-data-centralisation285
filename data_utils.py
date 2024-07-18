@@ -7,7 +7,7 @@ from sqlalchemy import inspect
 from urllib.parse import quote_plus
 
 class DatabaseConnector:
-    """
+    '''
     A class to connect and upload data to database.
 
     Parameters:
@@ -26,7 +26,7 @@ class DatabaseConnector:
         database engine.
     list_db_tables(engine)
         Lists database tables.
-    """
+    '''
     def __init__(self, download_creds=None, upload_creds=None):
 
         self.download_creds = download_creds if download_creds is not None else 'credentials/rds_creds.yaml'
@@ -56,7 +56,7 @@ class DatabaseConnector:
         DATABASE = db_creds['DATABASE']
         # Initialize SQL Alchemy engine
         engine = create_engine(
-            f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{ENDPOINT}:{PORT}/{DATABASE}"
+            f'{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{ENDPOINT}:{PORT}/{DATABASE}'
             )
         self.engine = engine
 
@@ -74,9 +74,9 @@ class DatabaseConnector:
             engine = self.init_db_engine(db_creds)
         pd_dataframe.to_sql(table_name, engine, if_exists='replace',chunksize=20)
         engine.dispose()
-        print("Dataframe uploaded")
+        print('Dataframe uploaded')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     cxn = DatabaseConnector()
-    print("cxn initialized")
+    print('cxn initialized')

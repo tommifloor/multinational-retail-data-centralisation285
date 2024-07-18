@@ -12,7 +12,7 @@ from fuzzywuzzy import process
 
 
 class DataCleaning:
-    """
+    '''
     A class for cleaning data.
 
     Parameters:
@@ -25,16 +25,46 @@ class DataCleaning:
     --------
     def clean_user_data(self, user_df):j
 
-    """
+    '''
 
     def __init__(self):
 
-        self.country_lists = self.load_country_data()
-        self.country_data = self.country_lists[0]
-        self.countries = self.country_lists[1]
-        self.country_codes = self.country_lists[2]
+        # self.country_lists = self.load_country_data()
+        # self.country_data = self.country_lists[0]
+        # self.countries = self.country_lists[1]
+        # self.country_codes = self.country_lists[2]
+        continents = ['America', 'North America', 'South America', 'Europe', 'Asia', 'Africa', 'Australia', 'Antarctica']
+        cc_providers = ['Visa', 'JCB', 'American Express', 'Diner\'s Club', 'Maestro', 'Mastercard', 'Discovery']
+        
+        # Regex codes
+        name_regex = r"[^A-Za-z- ]+"
+        numeric_regex = r"[^0-9]+"
+        null_regex = r"^(NULL|Null|null|N/A|n/a|NaN|<NA>)$"
+
+        # Email - RFC 2821, 2822 compliant Regex filter
+        email_regex = r"^((([!#$%&'*+\-/=?^_`{|}~\w])|([!#$%&'*+\-/=?^_`{|}~\w][!#$%&'*+\-/=?^_`{|}~\.\w]{0,}[!#$%&'*+\-/=?^_`{|}~\w]))[@]\w+([-.]\w+)*\.\w+([-.]\w+)*)$"
+        
+        uuid_regex = r"^([A-Za-z0-9]{8})[-]([A-Za-z0-9]{4})[-]([A-Za-z0-9]{4})[-]([A-Za-z0-9]{4})[-]([A-Za-z0-9]{12})$"
+
 
     def clean_user_data(self, user_df):
+
+        # df = df.astype({'col1': 'object', 'col2': 'int'})
+
+        # convert Series
+        # my_series = pd.to_numeric(my_series)
+
+        # # convert column "a" of a DataFrame
+        # df["a"] = pd.to_numeric(df["a"])
+        # You can also use it to convert multiple columns of a DataFrame via the apply() method:
+
+        # # convert all columns of DataFrame
+        # df = df.apply(pd.to_numeric) # convert all columns of DataFrame
+
+        # # convert just columns "a" and "b"
+        # df[["a", "b"]] = df[["a", "b"]].apply(pd.to_numeric)
+
+
         # General cleaning
         user_df = self.index_clean(user_df) # Sort by and drop index column
         user_df = self.null_clean(user_df) # Drop NULLs
@@ -43,8 +73,9 @@ class DataCleaning:
 
         # Filter out erroneous values
         user_df = user_df[~user_df.map(lambda x: len(str(x)) == 10).all(axis=1)]
+        user_df['email_address'] = user_df['email_address'].str.replace(r'[@]{2,}', '@', regex=True)
     
-        # Targeted cleaning
+        # Column cleaning
         user_df = self.name_clean(user_df, 'first_name')
         user_df = self.name_clean(user_df, 'last_name')
         user_df = self.title_clean(user_df, 'company')
@@ -57,7 +88,7 @@ class DataCleaning:
         # TO DO
         #user_df = self.phone_clean(user_df)
         user_df['phone_number'] = user_df['phone_number'].astype('string')
-        user_df['phone_number'] = user_df['phone_number'].str.replace(r'([^0-9]+)',"",regex=True)
+        user_df['phone_number'] = user_df['phone_number'].str.replace(r'([^0-9]+)','',regex=True)
         
         user_df = self.date_clean(user_df, 'date_of_birth')
         user_df = self.date_clean(user_df, 'join_date')
@@ -84,7 +115,7 @@ class DataCleaning:
 
         # Targeted clean
         cc_df['card_number'] = cc_df['card_number'].astype('string')
-        cc_df['card_number'] = cc_df['card_number'].str.replace(r'([^0-9]+)',"",regex=True)
+        cc_df['card_number'] = cc_df['card_number'].str.replace(r'([^0-9]+)','',regex=True)
 
 
         cc_df['card_provider'] = cc_df['card_provider'].astype('string')
@@ -119,7 +150,7 @@ class DataCleaning:
 
         # Targeted clean
         store_df['staff_numbers'] = store_df['staff_numbers'].astype('string')
-        store_df['staff_numbers'] = store_df['staff_numbers'].str.replace(r'([^0-9]+)',"",regex=True)
+        store_df['staff_numbers'] = store_df['staff_numbers'].str.replace(r'([^0-9]+)','',regex=True)
 
         store_df = self.date_clean(store_df,'opening_date')
         store_df = self.address_clean(store_df)
@@ -164,7 +195,7 @@ class DataCleaning:
         order_df = order_df[~order_df.map(lambda x: len(str(x)) == 10).all(axis=1)]
 
         order_df['card_number'] = order_df['card_number'].astype('string')
-        order_df['card_number'] = order_df['card_number'].str.replace(r'([^0-9]+)',"",regex=True)
+        order_df['card_number'] = order_df['card_number'].str.replace(r"([^0-9]+)",'',regex=True)
 
         order_df = self.null_clean(order_df)
         order_df = order_df.drop_duplicates() 
@@ -181,11 +212,6 @@ class DataCleaning:
         event_df = event_df[~event_df.map(lambda x: len(str(x)) == 10).all(axis=1)]
         event_df = self.id_clean(event_df, 'date_uuid')
 
-        # Date clean
-        # event_df['date'] = event_df['year'] + ' ' + event_df['month'] + ' ' + event_df['day'] + ' ' + event_df['timestamp']
-        # event_df = event_df.drop(columns=['year', 'month', 'day', 'timestamp'])
-        # event_df = self.date_clean(event_df, 'date')
-
         # Final sweep
         event_df = event_df.dropna(how='all')
         event_df = event_df.drop_duplicates()
@@ -193,69 +219,99 @@ class DataCleaning:
 
         return event_df
 
+    def regex_replace(self, df, column, regex_code, replace_value):
+        '''
+        Replaces dataframe column values matching regex expression with
+        replacement value.
+        '''
+        regex_code = re.compile(regex_code)
+        df[column] = df[column].str.replace(regex_code, replace_value, regex=False)
+
+        return df
+
+    def regex_none(self, df, column, regex_code):
+        '''
+        Sets dataframe column values matching regex expression to None.
+        '''
+        regex_code = re.compile(regex_code)
+        mask = df[column].str.fullmatch(regex_code)
+        df.loc[~mask, column] = None
+
+        return df
+
+    # TO DO: DROP ROW IF COLUMN NOT FIT REGEX
+    def regex_drop(self, df, column, regex_code):  
+        '''
+        Removes dataframe rows where column values do not match
+        regex expression.
+
+        Note: This method removes all row values based on
+        value from individual column.
+        '''
+        regex_code = re.compile(regex_code)
+        df[column] = df[column].str.fullmatch(regex_code)
+        df = df.loc[~df[column].isna()]
+
+        return df
+
     def convert_product_weights(self, product_df):
+        '''
+        Extracts measurement units from column values and converts 
+        said values to KG units using 'units' reference dictionary.
+        '''
         units = {'kg': 1, 'g': .001, 'ml': .001, 'oz': 0.02834952}
-        product_scales = product_df['weight'].str.extract(r'(\d\.?\d*+)\s*(\D+)')
+        product_scales = product_df['weight'].str.extract(r"(\d\.?\d*+)\s*(\D+)")
         product_df['weight'] = product_scales[0].astype('float').mul(product_scales[1].map(units))
 
         return product_df
 
     def index_clean(self, df):
+        '''
+        Checks columns for index column. Sorts based on index value.
+        After sorting, deletes existing index column and resets index.
+        '''
         df['index'] = df['index'].astype('int64')
         df = df.sort_values('index')
         df = df.drop('index', axis=1)
         df = df.reset_index(drop=True)
 
         return df
-
-    def null_clean(self, df):
-        df = df.fillna(np.nan)
-        df = df.replace(r"^(NULL|Null|null|N/A|n/a|NaN|<NA>)$", np.nan, regex=True)
-        df = df.dropna(how='all')
-
-        return df
     
-    def format_clean(self, df):
+    def strip_and_lower(self, df):
+        ''' 
+        Strips leading and trailing spaces and sets lowercase to 
+        all string values in dataframe.
+        '''
         df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
         df = df.map(lambda x: x.lower() if isinstance(x, str) else x) 
 
         return df
 
-    def title_clean(self, df, column_name):
-        df[column_name] = df[column_name].astype({column_name : 'string'}) # String datatype
-        df[column_name] = df[column_name].str.title() # Title case
-
-        return df
-    
-    def name_clean(self, df, column_name):
-        # Remove non-alphabetic characters (except '-')
-        df[column_name] = df[column_name].str.replace(r'[^A-Za-z-]+', '', regex=True)
-        df = self.title_clean(df, column_name)
+    def title_clean(self, df, column):
+        df[column] = df[column].astype({column : 'string'}) # String datatype
+        df[column] = df[column].str.title()
 
         return df
 
-    def date_clean(self, df, column_name):
-        df[column_name] = df[column_name].astype('string')
-        df[column_name] = df[column_name].apply(parse)
-        df[column_name] = pd.to_datetime(df[column_name], errors='coerce')
+    def date_clean(self, df, column):
+        '''
+        Parses dataframe string column for dates and converts to
+        Pandas datetime datatype.
+        '''
+        df[column] = df[column].astype('string')
+        df[column] = df[column].apply(parse)
+        df[column] = pd.to_datetime(df[column], errors='coerce')
         
         return df
 
-    def address_clean(self, df):
-        # Replace escape character line breaks
-        df['address'] = df['address'].str.replace('\n', ', ', regex=False)
-        df = self.title_clean(df, 'address')
-
-        return df
-
-    def email_clean(self, df):
-        # Email - RFC 2821, 2822 compliant Regex filter
-        regex_filter = re.compile(r"^((([!#$%&'*+\-/=?^_`{|}~\w])|([!#$%&'*+\-/=?^_`{|}~\w][!#$%&'*+\-/=?^_`{|}~\.\w]{0,}[!#$%&'*+\-/=?^_`{|}~\w]))[@]\w+([-.]\w+)*\.\w+([-.]\w+)*)$")
-        # Correct double @ symblols
-        df['email_address'] = df['email_address'].str.replace(r'[@]{2,}', '@', regex=True)
-        # Remove invalid email addresses
-        df = self.regex_check(df,'email_address', regex_filter)
-
+    def merge_columns(self, df, year_col, month_col, day_col, time_col):
+        '''
+        Creates new dataframe column by merging selected columns.
+        Merged columns are removed.
+        '''
+        df['date'] = df[[year_col, month_col, day_col, time_col]].agg(' '.join, axis=1)
+        df = df.drop(columns=[year_col, month_col, day_col, time_col])
+        df = self.date_clean(df, 'date') # TO REMOVE???
         return df
     
     def phone_clean(self, df):
@@ -265,91 +321,85 @@ class DataCleaning:
         # Remove none numerica characters
             return df
         except:
-            print("phone_clean error")
+            print('phone_clean error')
 
-    def load_country_data(self):
-        country_codes = []
-        with open('reference_data/country_data.yaml', "r") as country_file:
-            country_data = yaml.safe_load(country_file)
-            countries = list(country_data.keys())
-            for country in countries:
-                country_codes.append(country_data[country]['2-Letter Country Code'])
-
-        return country_data, countries, country_codes
-
-    def country_clean(self, df):
-        df['country'] = df['country'].str.replace(r'[^A-Za-z-]+', '', regex=True) 
-        # Fuzzy country name spellcheck
-        unique_countries = list(df['country'].unique())
-        corrected_countries = []
-        for i, country in enumerate(unique_countries):
-            country_check = process.extractOne(country, self.countries)
-            if country_check[1] > 85:
-                corrected_countries.append(country_check[0])
-            else:
-                corrected_countries.append(None)
-        country_dict = dict(zip(unique_countries, corrected_countries))
-        df['country'] = df['country'].replace(country_dict)
-        df = self.title_clean(df,'country')
-
-        return df
-    
-    def continent_clean(self, df):
-        df['continent'] = df['continent'].str.replace(r'[^A-Za-z-]+', '', regex=True)
-        unique_continents = list(df['continent'].unique())
-        continents = ['America', 'North America', 'South America', 'Europe', 'Asia', 'Africa', 'Australia', 'Antarctica']
-        corrected_continents = []
-        for i, continent in enumerate(unique_continents):
-            continent_check = process.extractOne(continent, continents)
-            if continent_check[1] > 75:
-                corrected_continents.append(continent_check[0])
-            else:
-                corrected_continents.append(None)
-        continent_dict = dict(zip(unique_continents, corrected_continents))
-        df['continent'] = df['continent'].replace(continent_dict)
-        df = self.title_clean(df,'continent')
-
-        return df
-    
-    # TO DO: Fix None errors / refactor
-    def country_code_clean(self, df):
-        df['country_code'] = df['country_code'].str.replace(r'[^A-Za-z- ]+', '', regex=True)
-        unique_countries = list(df['country'].unique())
-        code_dict = {}
-        for country in unique_countries:
-            code_dict[country] = self.country_data[country]['2-Letter Country Code']
-        df['country_code'] = df['country'].replace(code_dict)
-
-        return df
-    
-    def provider_clean(self, df):
-        unique_providers = list(df['card_provider'].unique())
-        ref_providers = ['Visa', 'JCB', 'American Express', 
-                        'Diner\'s Club', 'Maestro', 
-                        'Mastercard', 'Discovery'
-                        ]
-        provider_list = []
-        for provider in unique_providers:
-            provider_check = process.extractOne(provider, ref_providers)
-            provider_list.append(provider_check[0])
-        provider_dict = dict(zip(unique_providers, provider_list))
-        df['card_provider'] = df['card_provider'].replace(provider_dict)
+####################################################################
+    def yaml_data_extract(self, file_path):
+        '''
+        Safe loads yaml file into dataframe.
+        '''
+        with open(file_path, 'r') as yaml_file:
+            yaml_data = yaml.safe_load(yaml_file)
         
+        return yaml_data
+
+    def nested_values_list(self, dictionary, nested_value_key):
+        '''
+        Creates list from specified nested values.
+        '''
+        values_list = []
+        dictionary_keys = list(dictionary.keys())
+        for key in dictionary_keys:
+            values_list.append(dictionary[key][nested_value_key])
+
+        return values_list
+######################################################################
+   
+        # COUNTRY CODES
+    def cross_column_insert(self, df, column1, column2, data_dict, nested_value_key):
+        '''
+        Uses column1 values as dictionary keys to select values to
+        insert into column2.
+        '''
+        unique_values = df[column1].unique()
+        code_dict = {}
+        for value in unique_values:
+            code_dict[value] = data_dict[value][nested_value_key]
+        df[column2] = df[column1].replace(code_dict)
+
         return df
-    
-    def id_clean(self, df, column):  
-            regex_filter = re.compile(r"^([A-Za-z0-9]{8})[-]([A-Za-z0-9]{4})[-]([A-Za-z0-9]{4})[-]([A-Za-z0-9]{4})[-]([A-Za-z0-9]{12})$")
-            df = self.regex_check(df, column, regex_filter)
-            df = df.loc[~df[column].isna()]
 
-            return df
+    def category_clean(self, df, column, reference_values):
+        '''
+        Uses fuzzy_cat_clean() method to replaces columns values 
+        with spellchecked values.
 
-    def regex_check(self, df, column, regex_code):
-        regex_filter = re.compile(regex_code)
-        mask = df[column].str.fullmatch(regex_filter)
-        df.loc[~mask, column] = None
+        For use with columns with a fixed number of possibly values
+        (e.g. countries, country_codes, chemical elements, etc.).
+        Values below spellcheck threshold are set to None.
 
-        return df       
+        Uses Levenshtein Distance via FuzzyWuzzy module.
+        '''
+        unique_values = df[column].unique()
+        value_dict = self.fuzzy_cat_clean(unique_values, reference_values)
+        df[column] = df[column].replace(value_dict)
 
-if __name__ == "__main__":
+        return df
+
+    def fuzzy_cat_clean(values, reference_values, threshold=85):
+        '''
+        Spellchecks values with a fixed number of possible values
+        (e.g. countries, country_codes, chemical elements, etc.).
+
+        Returns value (key) : reference_value (value) dictionary.
+        Values below spellcheck threshold are set to None
+
+        Uses Levenshtein Distance via FuzzyWuzzy module.
+        '''
+        corrected_values = []
+        for value in values:
+            try:
+                value_check = process.extractOne(value, reference_values)
+                if value_check[1] > threshold:
+                    corrected_values.append(value_check[0])
+                else:
+                    corrected_values.append(None)
+            except:
+                print('Skipped value: ' + value)
+                continue
+        value_dict = dict(zip(values, corrected_values))
+
+        return value_dict
+
+if __name__ == '__main__':
      cln = DataCleaning()

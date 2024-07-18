@@ -1,7 +1,6 @@
 # MRDC project
 # Script for extracting data from a variety of sources, including .csv files, APIs, and AWS S3 buckets 
 import boto3
-import data_utils
 import pandas as pd
 import requests
 import tabula
@@ -9,7 +8,7 @@ import yaml
 
 # Class constructor
 class DataExtractor:
-    """
+    '''
     A class for extracting data from a variety of sources, including
     .csv files, APIs, and AWS S3 buckets.
 
@@ -23,8 +22,7 @@ class DataExtractor:
     --------
     read_rds_table(DatabaseConnector, table_name)
 
-    """
-
+    '''
     def read_rds_table(self, engine, table_name):
         user_df = pd.read_sql_table(table_name, engine)
         
@@ -60,7 +58,9 @@ class DataExtractor:
 
         return store_df
     
+    # CHANGE TO INPUT S3 URL
     def extract_from_s3(self, bucket, file_name, file_path):
+        # ADD S3 URL EXTRACTION
         s3 = boto3.client('s3')
         s3.download_file(bucket, file_name, file_path)
         product_df = pd.read_csv(file_path)
@@ -71,5 +71,3 @@ class DataExtractor:
         df = pd.read_json(file_path)
 
         return df
-
-# if __name__ == "__main__":
